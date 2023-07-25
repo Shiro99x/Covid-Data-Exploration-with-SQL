@@ -13,8 +13,8 @@ SELECT DISTINCT LOCATION FROM CovidDeaths
 order by location
 
 select location,date,population,total_cases,total_deaths,
-ROUND((total_cases/population)*100,2) as '% of population sick',
-ROUND((cast(total_deaths as int)/total_cases)*100,2) as '% of dead population among sick people'
+ROUND((total_cases/population)*100,2) as '% of population ever sick',
+ROUND((cast(total_deaths as int)/total_cases)*100,2) as '% of dead among sick people'
 from CovidDeaths
 where location = 'Poland'
 order by location, date
@@ -35,21 +35,22 @@ order by PercentageOfPopDeath DESC
 
 select location,
 max(cast(Total_deaths as int)) as TotalDeaths,
-ROUND(max(cast(Total_deaths as int))/population*100,2) as PercentageOfPopDeath,
+ROUND(max(cast(Total_deaths as int))/max(population)*100,2) as PercentageOfPopDeath,
 ROUND(max(cast(Total_deaths as int))/max(total_cases)*100,2) as PercentageOfPopDeathAmongInfected,
 max(cast(Total_deaths as int)) as TotalDeathsNumber
 from CovidDeaths
 where continent is null
-group by location,population
+group by location
 order by PercentageOfPopDeath DESC
+
 
 select cd.date,cd.new_deaths,cd.new_cases, (cv.people_vaccinated/cd.population)*100 as PercentageOfPopVacinated
 from CovidDeaths cd join CovidVaccinations cv on cd.location = cv.location and cd.date = cv.date
 where cd.location = 'Poland'
 order by cd.date
 
-select datepart(year,cd.date), 
-datepart(month,cd.date),
+select datepart(year,cd.date) as 'year', 
+datepart(month,cd.date) as 'month',
 SUM(cast(cd.new_deaths as int)) as newdeaths,
 SUM(cd.new_cases) as newcases,
 MAX(cast(cv.people_vaccinated as int))/MAX(cd.population)*100 as PercentageOfPopVacinated
@@ -58,9 +59,6 @@ where cd.location = 'Poland'
 group by datepart(year,cd.date),datepart(month,cd.date)
 order by datepart(year,cd.date),datepart(month,cd.date)
 
-select MAX(cd.population)
-from CovidDeaths cd join CovidVaccinations cv on cd.location = cv.location and cd.date = cv.date
-where cd.location ='Poland'
 
 select cd.location,datepart(year,cd.date) as year, 
 datepart(month,cd.date) as month,
@@ -68,6 +66,7 @@ SUM(cast(cd.new_deaths as int)) as newdeaths,
 SUM(cd.new_cases) as newcases,
 MAX(cast(cv.people_vaccinated as int))/MAX(cd.population)*100 as PercentageOfPopVacinated
 from CovidDeaths cd join CovidVaccinations cv on cd.location = cv.location and cd.date = cv.date
+where cd.continent is not null
 group by cd.location, datepart(year,cd.date),datepart(month,cd.date)
 order by cd.location, datepart(year,cd.date),datepart(month,cd.date)
 
